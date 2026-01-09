@@ -1,0 +1,88 @@
+# CLAUDE.md
+
+> Shared context for Claude sessions. **Commit this to git.**
+
+## Project Context
+
+**Project**: [PROJECT_NAME]
+**Stack**: [LANGUAGES/FRAMEWORKS]
+**Repo**: [GITHUB_URL]
+
+## Quick Reference
+
+```
+Mode:     Auto-accept (always)
+Model:    Opus 4.5 with thinking
+Plan:     Shift+Tab twice → iterate → execute
+```
+
+### Antigravity Shortcuts
+| Key | Action |
+|-----|--------|
+| ⌘E | Switch to Agent Manager |
+| ⌘L | Code with Agent |
+| ⌘I | Edit code inline |
+
+## Agent Commands
+
+| Command | Description |
+|---------|-------------|
+| `/innovation-scout [topic]` | arXiv + GitHub research |
+| `/deep-research [topic]` | Multi-source investigation |
+| `/remember [fact]` | Store to long-term memory |
+| `/recall [query]` | Query memory |
+| `/parallel [task]` | Coordinate parallel sessions |
+| `/sync` | Push/pull session state |
+| `/archive` | Close session, log all URLs |
+
+## Architecture Decisions
+
+_Key decisions and rationale for this project:_
+
+- 
+
+## Code Patterns
+
+_Patterns Claude should follow:_
+
+- 
+
+## Do NOT
+
+- Don't modify dependencies without asking
+- Don't commit directly; create PRs
+- Don't ignore failing tests
+- Don't skip documentation
+
+## Memory
+
+| Scope | Location |
+|-------|----------|
+| Project | `.agent/memory.md` |
+| Global | `~/.agent-core/memory/global.md` |
+
+## Parallel Sessions (Boris's Pattern)
+
+```
+Tab 1: Orchestrator (planning, merging)
+Tab 2-3: Feature development
+Tab 4: Testing
+Tab 5: Documentation
+```
+
+**Protocol:**
+1. Orchestrator plans and assigns
+2. Workers execute in parallel
+3. Each worker: `/sync push` when done
+4. Orchestrator: `/sync pull`, merge, PR
+
+## Recent Sessions
+
+_Auto-updated by /archive:_
+
+| Date | Topic | Outcome |
+|------|-------|---------|
+
+---
+
+*This file is read by Claude at session start. Keep it current.*

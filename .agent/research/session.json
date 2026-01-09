@@ -1,0 +1,34 @@
+{
+  "session_id": "agentic-ai-framework-20260109-160753-16a34f",
+  "topic": "agentic AI frameworks",
+  "workflow": "research",
+  "environment": "cli",
+  "started": "2026-01-09T16:07:53.997648",
+  "status": "active",
+  "queries": {
+    "viral": {
+      "github": "agentic AI frameworks stars:>500 pushed:>2025-12-10",
+      "description": "High-adoption, community-vetted"
+    },
+    "groundbreaker": {
+      "github": "agentic AI frameworks stars:10..200 created:>2025-10-11",
+      "arxiv": "agentic AI frameworks",
+      "description": "Novel, emerging innovations"
+    }
+  },
+  "paths": {
+    "local": "/Users/dicoangelo/.agent/research",
+    "global": "/Users/dicoangelo/.agent-core/sessions/agentic-ai-framework-20260109-160753-16a34f",
+    "session_log": "/Users/dicoangelo/.agent/research/session_log.md",
+    "scratchpad": "/Users/dicoangelo/.agent/research/scratchpad.json",
+    "report": "/Users/dicoangelo/.agent/research/agentic-ai-frameworks_report.md",
+    "sources": "/Users/dicoangelo/.agent/research/agentic-ai-frameworks_sources.csv"
+  },
+  "stats": {
+    "urls_visited": 0,
+    "urls_used": 0,
+    "checkpoints": 0,
+    "last_sync": "2026-01-09T16:34:41.908549",
+    "sync_direction": "push"
+  }
+}
