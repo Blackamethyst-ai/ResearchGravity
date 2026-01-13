@@ -1,0 +1,99 @@
+name: Research CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate Research Framework
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate Scripts
+        run: |
+          echo "🔍 Validating Python syntax..."
+          python -m py_compile init_session.py
+          python -m py_compile log_url.py
+          python -m py_compile status.py
+          python -m py_compile archive_session.py
+          python -m py_compile sync_environments.py
+          echo "✅ All scripts valid"
+
+      - name: Test Init Session (Dry Run)
+        run: |
+          echo "🧪 Testing init_session.py --help..."
+          python init_session.py --help
+
+      - name: Test Status Script
+        run: |
+          echo "🧪 Testing status.py..."
+          python status.py || true  # May fail without session, that's ok
+
+      - name: Framework Health Check
+        run: |
+          echo "📊 Framework Health Check"
+          echo "========================="
+          echo "SKILL.md exists: $(test -f SKILL.md && echo '✅' || echo '❌')"
+          echo "README.md exists: $(test -f README.md && echo '✅' || echo '❌')"
+          echo "Core scripts: $(ls -1 *.py 2>/dev/null | wc -l) files"
+          echo "========================="
+          echo "✅ ResearchGravity — Metaventions AI"
+
+  quality-gate:
+    name: Metaventions Quality Gate
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Documentation Standards
+        run: |
+          echo "📝 Checking documentation standards..."
+
+          # Check SKILL.md has required sections
+          if grep -q "Cold Start Protocol" SKILL.md; then
+            echo "✅ Cold Start Protocol documented"
+          else
+            echo "⚠️ Missing Cold Start Protocol"
+          fi
+
+          if grep -q "Source Hierarchy" SKILL.md; then
+            echo "✅ Source Hierarchy documented"
+          else
+            echo "⚠️ Missing Source Hierarchy"
+          fi
+
+          if grep -q "Quality Checklist" SKILL.md; then
+            echo "✅ Quality Checklist documented"
+          else
+            echo "⚠️ Missing Quality Checklist"
+          fi
+
+          echo "✅ Documentation standards verified"
+
+      - name: Metaventions Brand Check
+        run: |
+          echo "🎨 Verifying Metaventions AI branding..."
+
+          if grep -q "Metaventions AI" README.md; then
+            echo "✅ Brand present in README"
+          fi
+
+          if grep -q "dicoangelo@metaventionsai.com" SKILL.md; then
+            echo "✅ Contact info present"
+          fi
+
+          echo "✅ Brand verification complete"

@@ -1,0 +1,41 @@
+# ResearchGravity — Metaventions AI
+# Local session data (not committed)
+
+# Session state (local working data)
+.agent/research/session.json
+.agent/research/session_log.md
+.agent/research/scratchpad.json
+.agent/research/*.csv
+.agent/research/*_sources.csv
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temp files
+*.tmp
+*.temp
+*.log
+
+# Node (if any libs)
+node_modules/
+
+# Research artifacts (keep local)
+temp_*/
+libs/
