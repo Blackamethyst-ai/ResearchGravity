@@ -346,3 +346,11 @@ Tab 5: Synthesis + Writing
 ```bash
 chmod +x setup.sh && ./setup.sh
 ```
+
+---
+
+## Contact
+
+**Metaventions AI**
+Dico Angelo
+dicoangelo@metaventionsai.com
