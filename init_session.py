@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Initialize a new agent session with proper workspace structure.
-Supports both CLI and Antigravity environments with sync capabilities.
+Initialize a new Metaventions AI research session.
+Multi-source, multi-tier signal capture for meta-invention intelligence.
 
 Usage:
   python3 init_session.py <topic> [--workflow TYPE] [--env ENV] [--continue SESSION_ID]
@@ -41,21 +41,111 @@ def generate_session_id(topic: str) -> str:
 
 
 def create_search_queries(topic: str) -> dict:
-    """Generate search queries for the topic."""
+    """Generate multi-tier search queries for Metaventions-grade research."""
     today = datetime.now()
+    year = today.strftime("%Y")
+    month = today.strftime("%B")
     viral_cutoff = (today - timedelta(days=30)).strftime("%Y-%m-%d")
     groundbreaker_cutoff = (today - timedelta(days=90)).strftime("%Y-%m-%d")
-    
+    recent_cutoff = (today - timedelta(days=2)).strftime("%Y-%m-%d")
+
     return {
-        "viral": {
-            "github": f"{topic} stars:>500 pushed:>{viral_cutoff}",
-            "description": "High-adoption, community-vetted"
+        # Tier 1: Primary Sources
+        "tier1": {
+            "research": {
+                "arxiv_ai": f"site:arxiv.org cs.AI {topic} {year}",
+                "arxiv_lg": f"site:arxiv.org cs.LG {topic} {year}",
+                "arxiv_se": f"site:arxiv.org cs.SE {topic} {year}",
+                "huggingface": f"site:huggingface.co/papers {topic}",
+                "description": "Academic research papers"
+            },
+            "labs": {
+                "openai": f"site:openai.com {topic} {month} {year}",
+                "anthropic": f"site:anthropic.com {topic} {month} {year}",
+                "google_ai": f"site:blog.google/technology/ai {topic} {year}",
+                "meta_ai": f"site:ai.meta.com {topic} {year}",
+                "deepmind": f"site:deepmind.google {topic} {year}",
+                "description": "AI lab announcements"
+            },
+            "industry": {
+                "techcrunch": f"site:techcrunch.com {topic} {month} {year}",
+                "verge": f"site:theverge.com {topic} {month} {year}",
+                "ars": f"site:arstechnica.com {topic} {month} {year}",
+                "description": "Tech industry news"
+            }
         },
-        "groundbreaker": {
-            "github": f"{topic} stars:10..200 created:>{groundbreaker_cutoff}",
-            "arxiv": topic,
-            "description": "Novel, emerging innovations"
+        # Tier 2: Signal Amplifiers
+        "tier2": {
+            "github": {
+                "viral": f"{topic} stars:>500 pushed:>{viral_cutoff}",
+                "groundbreaker": f"{topic} stars:10..200 created:>{groundbreaker_cutoff}",
+                "trending": f"{topic} stars:>100 pushed:>{recent_cutoff}",
+                "description": "GitHub repositories"
+            },
+            "benchmarks": {
+                "metr": f"site:metr.org {topic}",
+                "arcprize": f"site:arcprize.org {topic}",
+                "paperswithcode": f"site:paperswithcode.com {topic} {year}",
+                "description": "Benchmark and leaderboard updates"
+            },
+            "social": {
+                "hackernews": f"site:news.ycombinator.com {topic}",
+                "twitter_search": f"{topic} (from:karpathy OR from:ylecun OR from:sama)",
+                "description": "Social signals from key figures"
+            }
+        },
+        # Tier 3: Deep Context
+        "tier3": {
+            "newsletters": {
+                "import_ai": "https://importai.substack.com/",
+                "the_batch": "https://www.deeplearning.ai/the-batch/",
+                "latent_space": "https://www.latent.space/",
+                "description": "Curated newsletters (benchmark calibration)"
+            },
+            "forums": {
+                "lesswrong": f"site:lesswrong.com {topic} {year}",
+                "alignmentforum": f"site:alignmentforum.org {topic}",
+                "description": "Frontier discourse"
+            }
+        },
+        # Frontier Filter (last 48 hours)
+        "frontier": {
+            "breaking": f"{topic} {month} {today.day} {year}",
+            "protocols": f'"protocol" OR "standard" OR "specification" {topic} {year}',
+            "description": "Bleeding edge signals"
         }
+    }
+
+
+def get_scan_urls() -> dict:
+    """Get direct URLs for daily scanning."""
+    return {
+        "daily_scan": [
+            "https://arxiv.org/list/cs.AI/new",
+            "https://arxiv.org/list/cs.LG/new",
+            "https://arxiv.org/list/cs.SE/new",
+            "https://huggingface.co/papers/trending",
+            "https://news.ycombinator.com/",
+            "https://github.com/trending"
+        ],
+        "lab_blogs": [
+            "https://openai.com/news/",
+            "https://www.anthropic.com/news",
+            "https://blog.google/technology/ai/",
+            "https://ai.meta.com/blog/",
+            "https://deepmind.google/discover/blog/"
+        ],
+        "industry_news": [
+            "https://techcrunch.com/category/artificial-intelligence/",
+            "https://arstechnica.com/ai/",
+            "https://www.theverge.com/ai-artificial-intelligence"
+        ],
+        "benchmarks": [
+            "https://metr.org/blog/",
+            "https://arcprize.org/blog",
+            "https://lmarena.ai/",
+            "https://paperswithcode.com/sota"
+        ]
     }
 
 
@@ -65,24 +155,24 @@ def init_session(
     env: str = None,
     continue_session: str = None
 ) -> dict:
-    """Initialize a new research session."""
-    
+    """Initialize a new research session with Metaventions-grade structure."""
+
     env = env or detect_environment()
-    
+
     # Handle continuing existing session
     if continue_session:
         return load_session(continue_session)
-    
+
     session_id = generate_session_id(topic)
     timestamp = datetime.now()
-    
+
     # Create directories
     local_dir = get_local_agent_dir() / "research"
     global_dir = get_agent_core_dir() / "sessions" / session_id
-    
+
     local_dir.mkdir(parents=True, exist_ok=True)
     global_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Session metadata
     session = {
         "session_id": session_id,
@@ -92,6 +182,7 @@ def init_session(
         "started": timestamp.isoformat(),
         "status": "active",
         "queries": create_search_queries(topic),
+        "scan_urls": get_scan_urls(),
         "paths": {
             "local": str(local_dir),
             "global": str(global_dir),
@@ -105,89 +196,214 @@ def init_session(
             "urls_used": 0,
             "checkpoints": 0,
             "last_sync": None
-        }
+        },
+        "quality_standard": "metaventions"
     }
-    
+
     # Create session log
     create_session_log(session)
-    
+
     # Create scratchpad
     create_scratchpad(session)
-    
-    # Create sources CSV header
+
+    # Create sources CSV header (updated schema)
     sources_path = Path(session["paths"]["sources"])
-    sources_path.write_text("name,url,type,filter,stars,date,relevance,used,notes\n")
-    
+    sources_path.write_text("name,url,tier,category,signal,relevance,used,notes,timestamp\n")
+
     # Save session metadata
     metadata_path = local_dir / "session.json"
     metadata_path.write_text(json.dumps(session, indent=2))
-    
+
     # Also save to global
     global_metadata = global_dir / "session.json"
     global_metadata.write_text(json.dumps(session, indent=2))
-    
+
     return session
 
 
 def create_session_log(session: dict):
-    """Create the session log markdown file."""
+    """Create the session log markdown file with Metaventions structure."""
+    queries = session['queries']
+    scan_urls = session['scan_urls']
+
     content = f"""# Research Session: {session['topic']}
 
 **Session ID:** `{session['session_id']}`
 **Workflow:** {session['workflow']}
 **Environment:** {session['environment']}
 **Started:** {session['started']}
-**Status:** {session['status']}
+**Quality Standard:** Metaventions-grade
 
-## Search Queries
+---
 
-### Viral Filter (High Adoption)
+## Phase 1: Signal Capture
+
+### Tier 1 Sources (Check First)
+
+#### Research Papers
 ```
-{session['queries']['viral']['github']}
+{queries['tier1']['research']['arxiv_ai']}
+{queries['tier1']['research']['arxiv_lg']}
+{queries['tier1']['research']['huggingface']}
 ```
 
-### Groundbreaker Filter (Novel/Emerging)
+#### Lab Blogs
 ```
-{session['queries']['groundbreaker']['github']}
+{queries['tier1']['labs']['openai']}
+{queries['tier1']['labs']['anthropic']}
+{queries['tier1']['labs']['google_ai']}
 ```
+
+#### Industry News
+```
+{queries['tier1']['industry']['techcrunch']}
+{queries['tier1']['industry']['verge']}
+```
+
+### Tier 2 Sources (Signal Amplifiers)
+
+#### GitHub
+```
+Viral:        {queries['tier2']['github']['viral']}
+Groundbreaker: {queries['tier2']['github']['groundbreaker']}
+Trending:     {queries['tier2']['github']['trending']}
+```
+
+#### Benchmarks
+```
+{queries['tier2']['benchmarks']['metr']}
+{queries['tier2']['benchmarks']['paperswithcode']}
+```
+
+### Frontier Filter (Last 48h)
+```
+{queries['frontier']['breaking']}
+{queries['frontier']['protocols']}
+```
+
+---
+
+## Direct Scan URLs
+
+### Daily Scan
+{chr(10).join(f'- {url}' for url in scan_urls['daily_scan'])}
+
+### Lab Blogs
+{chr(10).join(f'- {url}' for url in scan_urls['lab_blogs'])}
+
+### Industry News
+{chr(10).join(f'- {url}' for url in scan_urls['industry_news'])}
+
+### Benchmarks
+{chr(10).join(f'- {url}' for url in scan_urls['benchmarks'])}
 
 ---
 
 ## URLs Visited
 
-| Time | Source | URL | Filter | Used | Relevance | Notes |
-|------|--------|-----|--------|------|-----------|-------|
+| Time | Tier | Category | URL | Signal | Relevance | Used | Notes |
+|------|------|----------|-----|--------|-----------|------|-------|
+
+---
+
+## Phase 2: Synthesis
+
+### Thesis Statement
+_What is the pattern across findings?_
+
+
+
+### Gap Identified
+_What's missing that represents opportunity?_
+
+
+
+### Innovation Direction
+_Concrete next step_
+
+
 
 ---
 
 ## Key Findings
 
-_Update during research..._
+| # | Finding | Source | Signal | Category |
+|---|---------|--------|--------|----------|
+
+---
+
+## Quality Checklist
+
+- [ ] Scanned all Tier 1 sources for timeframe
+- [ ] Logged 10+ URLs minimum
+- [ ] Identified at least one GAP
+- [ ] Wrote thesis statement
+- [ ] Each finding has: link + signal + rationale
+- [ ] Innovation direction is concrete, not vague
 
 ---
 
 ## Checkpoints
 
-| Time | URLs | Findings | Notes |
-|------|------|----------|-------|
+| Time | URLs Logged | Findings | Notes |
+|------|-------------|----------|-------|
 
 """
     Path(session["paths"]["session_log"]).write_text(content)
 
 
 def create_scratchpad(session: dict):
-    """Create the scratchpad JSON file."""
+    """Create the scratchpad JSON file with multi-tier structure."""
     scratchpad = {
         "session_id": session["session_id"],
         "topic": session["topic"],
         "workflow": session["workflow"],
         "environment": session["environment"],
-        "viral_candidates": [],
-        "groundbreaker_candidates": [],
-        "arxiv_papers": [],
+        "quality_standard": "metaventions",
+
+        # Tier 1 findings
+        "tier1": {
+            "research": [],
+            "labs": [],
+            "industry": []
+        },
+
+        # Tier 2 findings
+        "tier2": {
+            "github": {
+                "viral": [],
+                "groundbreaker": [],
+                "trending": []
+            },
+            "benchmarks": [],
+            "social": []
+        },
+
+        # Tier 3 context
+        "tier3": {
+            "newsletters": [],
+            "forums": []
+        },
+
+        # Frontier signals
+        "frontier": [],
+
+        # All URLs visited
         "urls_visited": [],
+
+        # Synthesis
+        "synthesis": {
+            "thesis": None,
+            "gap": None,
+            "innovation_direction": None
+        },
+
+        # Key findings (top signals)
         "findings": [],
+
+        # Checkpoints
         "checkpoints": [],
+
         "last_updated": session["started"]
     }
     Path(session["paths"]["scratchpad"]).write_text(json.dumps(scratchpad, indent=2))
@@ -197,43 +413,45 @@ def load_session(session_id: str) -> dict:
     """Load an existing session to continue."""
     global_dir = get_agent_core_dir() / "sessions" / session_id
     metadata_path = global_dir / "session.json"
-    
+
     if not metadata_path.exists():
         raise FileNotFoundError(f"Session not found: {session_id}")
-    
+
     session = json.loads(metadata_path.read_text())
     session["status"] = "resumed"
-    
+
     # Restore to local directory
     local_dir = get_local_agent_dir() / "research"
     local_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Copy files from global to local
     for file in global_dir.iterdir():
         if file.is_file():
             dest = local_dir / file.name
             dest.write_text(file.read_text())
-    
+
     session["paths"]["local"] = str(local_dir)
     return session
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Initialize agent research session")
+    parser = argparse.ArgumentParser(
+        description="Initialize Metaventions-grade research session"
+    )
     parser.add_argument("topic", nargs="?", help="Research topic")
-    parser.add_argument("--workflow", default="research", 
+    parser.add_argument("--workflow", default="deep-research",
                         choices=["research", "innovation-scout", "deep-research"],
-                        help="Workflow type")
+                        help="Workflow type (default: deep-research)")
     parser.add_argument("--env", choices=["cli", "antigravity"],
                         help="Override environment detection")
     parser.add_argument("--continue", dest="continue_session",
                         help="Continue existing session by ID")
-    
+
     args = parser.parse_args()
-    
+
     if not args.topic and not args.continue_session:
         parser.error("Either topic or --continue SESSION_ID is required")
-    
+
     try:
         session = init_session(
             topic=args.topic or "",
@@ -241,22 +459,28 @@ def main():
             env=args.env,
             continue_session=args.continue_session
         )
-        
+
         print(f"✅ Session initialized: {session['session_id']}")
         print(f"   Topic: {session['topic']}")
         print(f"   Workflow: {session['workflow']}")
-        print(f"   Environment: {session['environment']}")
+        print(f"   Quality: Metaventions-grade")
         print(f"   Local: {session['paths']['local']}")
         print()
         print("📝 Files created:")
-        print(f"   - session_log.md")
-        print(f"   - scratchpad.json")
-        print(f"   - sources.csv")
+        print("   - session_log.md (with all query templates)")
+        print("   - scratchpad.json (multi-tier structure)")
+        print("   - sources.csv")
         print()
-        print("🔍 Suggested queries:")
-        print(f"   Viral: {session['queries']['viral']['github']}")
-        print(f"   Groundbreaker: {session['queries']['groundbreaker']['github']}")
-        
+        print("🔗 Quick scan URLs:")
+        for url in session['scan_urls']['daily_scan'][:3]:
+            print(f"   - {url}")
+        print()
+        print("🎯 Workflow:")
+        print("   1. Scan Tier 1 sources (30 min)")
+        print("   2. Log ALL URLs via log_url.py")
+        print("   3. Synthesize: thesis + gap + direction")
+        print("   4. Archive when complete")
+
     except Exception as e:
         print(f"❌ Error: {e}")
         exit(1)
