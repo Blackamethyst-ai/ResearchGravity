@@ -4,12 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-ResearchGravity is a Python research session tracking framework with auto-capture, lineage tracking, and multi-tier source management.
+ResearchGravity is a Python research session tracking framework with auto-capture, lineage tracking, and multi-tier source management. It serves as the backend for the **Antigravity Chief of Staff** system.
+
+## RAG Stack (Elite Configuration)
+
+| Component | Implementation | Rating |
+|-----------|----------------|--------|
+| **Vector DB** | Qdrant (localhost:6333) | ⭐⭐⭐⭐⭐ |
+| **Embeddings** | Cohere embed-english-v3.0 (1024d) | ⭐⭐⭐⭐⭐ |
+| **Reranking** | Cohere rerank-v3.5 | ⭐⭐⭐⭐⭐ |
+| **Storage** | SQLite + Qdrant dual-write | ⭐⭐⭐⭐⭐ |
 
 ## Commands
 
 ```bash
-# Session management
+# ═══════════════════════════════════════════════════════════
+# API SERVER
+# ═══════════════════════════════════════════════════════════
+source .venv/bin/activate
+python3 -m api.server --port 3847            # Start Chief of Staff API
+
+# ═══════════════════════════════════════════════════════════
+# SESSION MANAGEMENT
+# ═══════════════════════════════════════════════════════════
 python3 status.py                              # Check session state (always run first)
 python3 init_session.py "topic"                # Start new research session
 python3 init_session.py "topic" --impl-project os-app  # Pre-link to implementation project
@@ -23,65 +40,113 @@ python3 archive_session.py                     # Archive completed session
 python3 session_tracker.py status              # Check auto-capture status
 python3 session_tracker.py link <session-id> <project>  # Link session to project
 
-# Context loading
+# ═══════════════════════════════════════════════════════════
+# CONTEXT & PREFETCH
+# ═══════════════════════════════════════════════════════════
 python3 project_context.py                     # Auto-detect from current directory
 python3 project_context.py --list              # List all projects
 python3 project_context.py --index             # View unified index
 
-# Backfill
-python3 auto_capture.py scan --hours 48        # Scan recent history
-python3 auto_capture.py backfill <path> --topic "..."  # Recover from old session
-
-# Context Prefetcher (v3.4)
 python3 prefetch.py                            # Auto-detect project, inject context
 python3 prefetch.py --project os-app --papers  # Specific project with papers
 python3 prefetch.py --topic multi-agent        # Filter by topic
 python3 prefetch.py --clipboard                # Copy to clipboard
 python3 prefetch.py --inject                   # Inject into ~/CLAUDE.md
 
-# Learnings Backfill (v3.4)
+# ═══════════════════════════════════════════════════════════
+# STORAGE & MIGRATION
+# ═══════════════════════════════════════════════════════════
+python3 -m storage.migrate                     # Migrate JSON → SQLite + Qdrant
+python3 -m storage.migrate --dry-run           # Preview migration
+
+# ═══════════════════════════════════════════════════════════
+# BACKFILL & LEARNINGS
+# ═══════════════════════════════════════════════════════════
+python3 auto_capture.py scan --hours 48        # Scan recent history
+python3 auto_capture.py backfill <path> --topic "..."  # Recover from old session
 python3 backfill_learnings.py                  # Regenerate learnings.md from all sessions
 python3 backfill_learnings.py --since 7        # Last 7 days only
-python3 backfill_learnings.py --dry-run        # Preview without writing
+
+# ═══════════════════════════════════════════════════════════
+# CPB PRECISION MODE v2
+# ═══════════════════════════════════════════════════════════
+python3 -m cpb precision "query"               # Run precision mode (95%+ DQ target)
+python3 -m cpb precision "query" --verbose     # With detailed output
+python3 -m cpb precision --interactive         # Interactive REPL mode
+python3 -m cpb precision --status              # Show orchestrator status
+python3 -m cpb precision --agents              # List 7 agent personas
 ```
 
 ## Architecture
 
 ```
-researchgravity/           # Scripts (this repo)
-├── prefetch.py            # Context prefetcher for Claude sessions (v3.4)
-├── backfill_learnings.py  # Extract learnings from archived sessions (v3.4)
-├── init_session.py        # Session initialization
-├── session_tracker.py     # Auto-capture engine
-├── auto_capture.py        # Backfill historical sessions
-├── project_context.py     # Project context loader
-├── log_url.py             # URL logging
-├── status.py              # Cold start checker
-├── archive_session.py     # Session archival
-├── sync_environments.py   # Cross-environment sync
-└── SKILL.md               # Agent Core documentation
+researchgravity/               # Scripts (this repo)
+├── api/
+│   └── server.py              # FastAPI server @ :3847
+├── storage/
+│   ├── qdrant_db.py           # Cohere embeddings + Qdrant vectors (1024d)
+│   ├── sqlite_db.py           # SQLite relational storage
+│   ├── engine.py              # Unified storage engine (dual-write)
+│   └── migrate.py             # JSON → SQLite + Qdrant migration
+├── critic/
+│   ├── base.py                # Writer-Critic base class
+│   ├── archive_critic.py      # Archive validation
+│   ├── evidence_critic.py     # Evidence validation
+│   └── pack_critic.py         # Pack validation
+├── prefetch.py                # Context prefetcher for Claude sessions
+├── backfill_learnings.py      # Extract learnings from archived sessions
+├── init_session.py            # Session initialization
+├── session_tracker.py         # Auto-capture engine
+├── auto_capture.py            # Backfill historical sessions
+├── project_context.py         # Project context loader
+├── log_url.py                 # URL logging
+├── status.py                  # Cold start checker
+├── archive_session.py         # Session archival
+└── evidence_extractor.py      # Extract evidence from transcripts
 
-~/.agent-core/             # Data (single source of truth)
-├── projects.json          # Project registry
-├── session_tracker.json   # Auto-capture state
-├── research/              # Per-project research files
-│   ├── INDEX.md           # Unified cross-reference index
-│   ├── careercoach/
-│   ├── os-app/
-│   └── metaventions/
-├── sessions/              # Archived sessions
-│   └── [session-id]/
-│       ├── session.json
-│       ├── full_transcript.txt
-│       ├── urls_captured.json
-│       ├── findings_captured.json
-│       └── lineage.json
+~/.agent-core/                 # Data (single source of truth)
+├── config.json                # API keys (cohere, youtube, etc.)
+├── storage/
+│   └── antigravity.db         # SQLite database
+├── sessions/                  # Archived sessions (114 indexed)
+├── context-packs/             # Context packs
 ├── memory/
-│   ├── learnings.md       # Extracted learnings archive (v3.4)
-│   ├── global.md
-│   └── projects/
-└── workflows/
+│   └── learnings.md           # Extracted learnings archive
+└── INTEGRATION_STATUS.md      # Full system documentation
 ```
+
+## Cohere Configuration
+
+API key stored in `~/.agent-core/config.json`:
+```json
+{
+  "cohere": {
+    "api_key": "your-key-here"
+  }
+}
+```
+
+Or via environment: `export COHERE_API_KEY='your-key-here'`
+
+**Models:**
+- Embeddings: `embed-english-v3.0` (1024 dimensions)
+- Reranking: `rerank-v3.5`
+
+**Free tier limits:**
+- Embed: 1M tokens/month
+- Rerank: 1,000 calls/month (~33 searches/day)
+
+## API Endpoints
+
+Base URL: `http://localhost:3847`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Health check |
+| GET | `/api/sessions` | List sessions |
+| POST | `/api/search/semantic` | Semantic search (Cohere + reranking) |
+| GET | `/api/v2/stats` | Storage stats (Cohere model info) |
+| POST | `/api/v2/findings/batch` | Batch store findings |
 
 ## Cold Start Protocol
 
@@ -118,3 +183,24 @@ Works across:
 - **CLI (Claude Code):** Planning, parallel sessions, synthesis
 - **Antigravity (VSCode):** Coding, preview, browser research
 - **Web (claude.ai):** Handoff, visual review
+- **OS-App:** Agent Core SDK (React hooks, TypeScript client)
+
+## Testing Cohere Integration
+
+```bash
+source .venv/bin/activate
+python3 -c "
+import asyncio
+from storage.qdrant_db import get_qdrant
+
+async def test():
+    q = await get_qdrant()
+    results = await q.search_findings('multi-agent orchestration', limit=3)
+    for r in results:
+        score = r.get('relevance_score', r.get('score', 0))
+        print(f'[{score:.3f}] {r[\"content\"][:60]}...')
+    await q.close()
+
+asyncio.run(test())
+"
+```
