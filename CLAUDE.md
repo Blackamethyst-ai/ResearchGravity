@@ -6,12 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ResearchGravity is a Python research session tracking framework with auto-capture, lineage tracking, and multi-tier source management. It serves as the backend for the **Antigravity Chief of Staff** system.
 
-## RAG Stack (Elite Configuration)
+## RAG Stack (SOTA 2026)
 
 | Component | Implementation | Rating |
 |-----------|----------------|--------|
 | **Vector DB** | Qdrant (primary) + sqlite-vec (fallback) | ⭐⭐⭐⭐⭐ |
-| **Embeddings** | Cohere embed-english-v3.0 (1024d) + SBERT offline fallback | ⭐⭐⭐⭐⭐ |
+| **Embeddings** | Cohere embed-v4.0 (Matryoshka 256-1536d) + SBERT offline | ⭐⭐⭐⭐⭐ |
 | **Reranking** | Cohere rerank-v3.5 / Hybrid BM25+cosine | ⭐⭐⭐⭐⭐ |
 | **Storage** | SQLite + dual-write (Qdrant + sqlite-vec) | ⭐⭐⭐⭐⭐ |
 
@@ -23,9 +23,16 @@ Priority: Qdrant → sqlite-vec → FTS fallback
 - sqlite-vec: Single-file vectors (offline capable)
 - FTS: Full-text search fallback (always available)
 
-Embeddings: Cohere → sentence-transformers fallback
-- Cohere: embed-english-v3.0 (1024d, requires API)
-- SBERT: all-MiniLM-L6-v2 (384d → padded to 1024d, fully offline)
+Embeddings: Cohere v4 → v3 fallback → SBERT offline
+- Cohere v4: embed-v4.0 (multimodal, 128k context, Matryoshka 256-1536d)
+- Cohere v3: embed-english-v3.0 (1024d, automatic fallback)
+- SBERT: all-MiniLM-L6-v2 (384d → padded, fully offline)
+
+Matryoshka Dimensions:
+- 1536d: Maximum quality
+- 1024d: Balanced (default)
+- 512d:  50% storage savings
+- 256d:  83% storage savings
 ```
 
 ### V6.1 Security & Reliability (API v2.1.0)
