@@ -24,6 +24,30 @@ Priority: Qdrant → sqlite-vec → FTS fallback
 - FTS: Full-text search fallback (always available)
 ```
 
+### V6.1 Security & Reliability (API v2.1.0)
+
+| Feature | Implementation |
+|---------|----------------|
+| **Authentication** | JWT tokens + API key (`X-API-Key` header) |
+| **Rate Limiting** | slowapi (10/min search, 30/min write, 60/min default) |
+| **Input Validation** | Regex-based session/project ID sanitization |
+| **Dead-Letter Queue** | Failed writes queued for retry with exponential backoff |
+| **Structured Logging** | JSON/console formats with request context |
+| **Async Cohere** | Non-blocking embedding via `asyncio.to_thread` |
+
+```bash
+# Authentication
+curl -X POST http://localhost:3847/api/auth/token \
+  -d '{"client_id": "my-app", "scope": "write"}'
+curl -H "Authorization: Bearer <token>" http://localhost:3847/api/auth/me
+
+# Environment variables
+export RG_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+export RG_API_KEY="your-service-api-key"
+export RG_LOG_LEVEL="INFO"    # DEBUG, INFO, WARNING, ERROR
+export RG_LOG_JSON="true"     # JSON format for production
+```
+
 ## Commands
 
 ```bash
@@ -162,11 +186,15 @@ python3 -m storage.migrate_to_vec --status     # Show migration status
 ```
 researchgravity/               # Scripts (this repo)
 ├── api/
-│   └── server.py              # FastAPI server @ :3847
+│   ├── server.py              # FastAPI server @ :3847 (v2.1.0)
+│   └── security.py            # JWT auth, rate limiting, validation (v6.1)
 ├── storage/
 │   ├── qdrant_db.py           # Cohere embeddings + Qdrant vectors (1024d)
-│   ├── sqlite_db.py           # SQLite relational storage
-│   ├── engine.py              # Unified storage engine (dual-write)
+│   ├── sqlite_db.py           # SQLite relational storage (semaphore pool)
+│   ├── sqlite_vec.py          # sqlite-vec vector storage (v6.0)
+│   ├── engine.py              # Unified storage engine (dual-write + DLQ)
+│   ├── dead_letter_queue.py   # Failed write recovery (v6.1)
+│   ├── logging_config.py      # Structured logging (v6.1)
 │   └── migrate.py             # JSON → SQLite + Qdrant migration
 ├── critic/
 │   ├── base.py                # Writer-Critic base class
